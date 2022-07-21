@@ -5,18 +5,19 @@
       <i v-if="!sidebar.collapse" class="el-icon-s-fold"></i>
       <i v-else class="el-icon-s-unfold"></i>
     </div>
-    <div class="logo">后台管理系统</div>
+    <div class="logo">山东农业大学《形势与政策》课程成绩管理系统</div>
     <div class="header-right">
       <div class="header-user-con">
+        <!--        暂时屏蔽消息中心-->
         <!-- 消息中心 -->
-        <div class="btn-bell">
-          <el-tooltip effect="dark" :content="message?`有${message}条未读消息`:`消息中心`" placement="bottom">
-            <router-link to="/tabs">
-              <i class="el-icon-bell"></i>
-            </router-link>
-          </el-tooltip>
-          <span class="btn-bell-badge" v-if="message"></span>
-        </div>
+        <!--        <div class="btn-bell">-->
+        <!--          <el-tooltip effect="dark" :content="message?`有${message}条未读消息`:`消息中心`" placement="bottom">-->
+        <!--            <router-link to="/tabs">-->
+        <!--              <i class="el-icon-bell"></i>-->
+        <!--            </router-link>-->
+        <!--          </el-tooltip>-->
+        <!--          <span class="btn-bell-badge" v-if="message"></span>-->
+        <!--        </div>-->
         <!-- 用户头像 -->
         <div class="user-avator">
           <img src="../assets/img/aha.jpg"/>
@@ -24,14 +25,11 @@
         <!-- 用户名下拉菜单 -->
         <el-dropdown class="user-name" trigger="click" @command="handleCommand">
                     <span class="el-dropdown-link">
-                        {{ username }}
+                        {{ personName }}
                         <i class="el-icon-caret-bottom"></i>
                     </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <a href="https://github.com/lin-xin/vue-manage-system" target="_blank">
-                <el-dropdown-item>项目仓库</el-dropdown-item>
-              </a>
               <el-dropdown-item command="user">个人中心</el-dropdown-item>
               <el-dropdown-item divided command="loginout">退出登录</el-dropdown-item>
             </el-dropdown-menu>
@@ -42,14 +40,15 @@
   </div>
 </template>
 <script>
-import {computed, onMounted} from "vue";
+import {onMounted} from "vue";
 import {useSidebarStore} from '../store/sidebar'
 import {useRouter} from "vue-router";
+import service from "../utils/request";
 
 export default {
   setup() {
-    const username = JSON.parse(sessionStorage.getItem('loginUser')).username;
-    const message = 2;
+    const personName = JSON.parse(sessionStorage.getItem('loginUser')).personName;
+    // const message = 2;
 
     const sidebar = useSidebarStore();
     // 侧边栏折叠
@@ -67,7 +66,8 @@ export default {
     const router = useRouter();
     const handleCommand = (command) => {
       if (command === "loginout") {
-        localStorage.removeItem("ms_username");
+        service.post('/api/logout');
+        sessionStorage.removeItem("loginUser");
         router.push("/login");
       } else if (command === "user") {
         router.push("/user");
@@ -76,8 +76,8 @@ export default {
 
     return {
       sidebar,
-      username,
-      message,
+      personName,
+      // message,
       collapseChage,
       handleCommand,
     };
@@ -103,7 +103,7 @@ export default {
 
 .header .logo {
   float: left;
-  width: 250px;
+  width: 500px;
   line-height: 70px;
 }
 
