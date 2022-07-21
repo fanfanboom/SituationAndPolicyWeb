@@ -48,7 +48,7 @@ import {useRouter} from "vue-router";
 
 export default {
   setup() {
-    const username = localStorage.getItem("ms_username");
+    const username = JSON.parse(sessionStorage.getItem('loginUser')).username;
     const message = 2;
 
     const sidebar = useSidebarStore();
