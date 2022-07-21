@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {ElMessage} from "element-plus";
 
 const service = axios.create({
     // process.env.NODE_ENV === 'development' 来判断是否开发环境
@@ -20,7 +21,16 @@ service.interceptors.request.use(
 service.interceptors.response.use(
     response => {
         if (response.status === 200) {
-            return response.data;
+            let data = response.data;
+            if (data.status === 200) {
+                if (data.msg !== '' && data.msg !== undefined) {
+                    ElMessage.success(data.msg);
+                }
+            } else {
+                // 业务报错
+                ElMessage.error(data.msg);
+            }
+            return data;
         } else {
             Promise.reject();
         }
