@@ -134,10 +134,8 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    document.title = `${to.meta.title} | vue-manage-system`;
-    // const role = localStorage.getItem('ms_username');
+    document.title = `${to.meta.title} | 山东农业大学`;
     const loginUser = JSON.parse(sessionStorage.getItem('loginUser'));
-    // if (!role && to.path !== '/login') {
     if (!loginUser && to.path !== '/login') {
         next('/login');
     } else if (to.meta.permission) {
