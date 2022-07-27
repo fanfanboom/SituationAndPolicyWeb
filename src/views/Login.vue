@@ -104,7 +104,8 @@ export default {
                 editVisible.value = true;
               } else {
                 //登录成功
-                sessionStorage.setItem("loginUser", JSON.stringify(res.obj))
+                sessionStorage.setItem("loginUser", JSON.stringify(res.obj));
+                service.post("/api/user/recordlogin");
                 router.push("/");
               }
             } else {
