@@ -45,12 +45,12 @@ export default {
         index: "/dashboard",
         title: "系统首页",
       }, {
-        icon: "el-icon-lxcolor",
-        index: "3",
+        icon: "el-icon-lxcostoms-alearance",
+        index: "baseInfo",
         title: "基础信息",
         subs: [
           {
-            index: "",
+            index: "/departments",
             title: "学院信息"
           }, {
             index: "",
