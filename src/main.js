@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import installElementPlus from './plugins/element'
-import './assets/css/icon.css'
+import './assets/css/iconfont.css'
 const app = createApp(App)
 installElementPlus(app)
 app.use(createPinia())
