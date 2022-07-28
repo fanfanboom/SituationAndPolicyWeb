@@ -72,7 +72,6 @@ export default {
     const handleSearch = () => {
       //设置回到第一页，以免页数错误导致查询失败
       state.pagedData.pageable.pageNumber=1;
-      console.log(state.belongDepartment);
       getData();
     }
     return {
