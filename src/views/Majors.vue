@@ -8,10 +8,16 @@
       </el-breadcrumb>
     </div>
     <div class="container">
+      <div style="margin-bottom: 10px">
+        <el-select v-model="belongDepartment" placeholder="归属学院" style="margin-right: 10px">
+          <el-option v-for="(item,index) in departments" :label="item.name" :value="item.id" :key="index"/>
+        </el-select>
+        <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+      </div>
       <el-table :data="pagedData.content" border>
         <el-table-column label="序号" width="50" align="center">
           <template #default="scope">
-            {{pagedData.pageable.pageNumber*pagedData.pageable.pageSize+scope.$index+1}}
+            {{ pagedData.pageable.pageNumber * pagedData.pageable.pageSize + scope.$index + 1 }}
           </template>
         </el-table-column>
         <el-table-column label="专业代码" prop="id"></el-table-column>
@@ -43,23 +49,35 @@ export default {
           pageNumber: 1,
           pageSize: 10,
         }
-      }
+      },
+      departments: [],
+      belongDepartment: ''
     });
-    const getData = ()=>{
-      state.tableData = service.get(`/api/major/all/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}/ASC/department`).then(res => {
-        state.pagedData=res.obj;
+    const getData = () => {
+      service.get(`/api/major/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
+      /ASC/department?departmentId=${state.belongDepartment}`).then(res => {
+        state.pagedData = res.obj;
       })
     }
     onMounted(() => {
       getData();
+      service.get("/api/department/all").then(res => {
+        state.departments = res.obj;
+      })
     })
     const handlePageChange = (pageIndex) => {
-      state.pagedData.pageable.pageNumber=pageIndex;
+      state.pagedData.pageable.pageNumber = pageIndex;
+      getData();
+    }
+    const handleSearch = () => {
+      //设置回到第一页，以免页数错误导致查询失败
+      state.pagedData.pageable.pageNumber=1;
+      console.log(state.belongDepartment);
       getData();
     }
     return {
       ...toRefs(state),
-      handlePageChange
+      handlePageChange, handleSearch
     }
   },
 }
