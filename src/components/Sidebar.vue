@@ -47,7 +47,7 @@ export default {
       }, {
         icon: "el-icon-lxcostoms-alearance",
         index: "baseInfo",
-        title: "基础信息",
+        title: "基础数据",
         subs: [
           {
             index: "/departments",
