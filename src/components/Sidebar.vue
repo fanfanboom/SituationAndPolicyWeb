@@ -53,7 +53,7 @@ export default {
             index: "/departments",
             title: "学院信息"
           }, {
-            index: "",
+            index: "/majors",
             title: "专业信息"
           }, {
             index: "",
