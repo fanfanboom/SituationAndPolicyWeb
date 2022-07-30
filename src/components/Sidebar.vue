@@ -56,7 +56,7 @@ export default {
             index: "/majors",
             title: "专业信息"
           }, {
-            index: "",
+            index: "/students",
             title: "学生信息"
           }
         ]

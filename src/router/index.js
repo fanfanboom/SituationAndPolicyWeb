@@ -24,6 +24,13 @@ const routes = [
                 title: "专业信息"
             }
         }, {
+            path:"/students",
+            name: 'students',
+            component:()=>import("../views/Students.vue"),
+            meta: {
+                title: "学生信息"
+            }
+        },{
             path: "/dashboard",
             name: "dashboard",
             meta: {
