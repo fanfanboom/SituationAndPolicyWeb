@@ -10,7 +10,8 @@
     <div class="container">
       <div style="margin-bottom: 10px">
         <input type="file" accept=".xls,.xlsx" class="upload-file" @change="changeExcel($event)">
-        <el-button type="warning" icon="el-icon-plus" :disabled="!canSubmit">提交更新</el-button>
+        <el-button type="warning" icon="el-icon-top" :disabled="!canSubmit" @click="handleSubmit" style="margin-right: 10px">提交更新</el-button>
+        <el-tag type="primary" size="large">Tips:单次导入条数与机器性能相关，建议单次导入不超过1W条。</el-tag>
       </div>
       <el-table :data="tableData" border>
         <el-table-column label="序号" width="70" align="center" type="index"></el-table-column>
@@ -149,9 +150,15 @@ export default {
         state.canSubmit=true;
       }
     };
+    const handleSubmit = () => {
+      service.post("/api/student/addOrUpdates",state.tableData).then(()=>{
+        state.tableData=[];
+        state.canSubmit=false;
+      });
+    }
     return {
       ...toRefs(state),
-      changeExcel
+      changeExcel,handleSubmit
     }
   },
 }
