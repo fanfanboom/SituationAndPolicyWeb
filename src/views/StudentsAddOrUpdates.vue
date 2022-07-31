@@ -10,7 +10,9 @@
     <div class="container">
       <div style="margin-bottom: 10px">
         <input type="file" accept=".xls,.xlsx" class="upload-file" @change="changeExcel($event)">
-        <el-button type="warning" icon="el-icon-top" :disabled="!canSubmit" @click="handleSubmit" style="margin-right: 10px">提交更新</el-button>
+        <el-button type="warning" icon="el-icon-top" :disabled="!canSubmit" @click="handleSubmit"
+                   style="margin-right: 10px">提交更新
+        </el-button>
         <el-tag type="primary" size="large">Tips:单次导入条数与机器性能相关，建议单次导入不超过1W条。</el-tag>
       </div>
       <el-table :data="tableData" border>
@@ -30,11 +32,15 @@
       <el-result icon="error" title="数据校验失败,无法执行导入" :sub-title="info" v-if="info!==''"></el-result>
     </el-dialog>
 
+    <el-dialog v-model="needSecondsVisible" width="40%">
+      <el-result icon="success" :title="needSecondsMessage"></el-result>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
-import {onMounted, reactive, toRefs} from "vue";
+import {computed, onMounted, reactive, toRefs} from "vue";
 import * as XLSX from "xlsx";
 import {ElMessage} from "element-plus";
 import service from "../utils/request";
@@ -48,8 +54,15 @@ export default {
       majors: [],
       dialogVisible: false,
       info: "",
-      canSubmit: false
+      canSubmit: false,
+      needSeconds: 0,
     });
+    const needSecondsMessage = computed(() => {
+      return `提交中，预计还需要${state.needSeconds}秒...`
+    });
+    const needSecondsVisible = computed(() => {
+      return state.needSeconds > 0;
+    })
     onMounted(() => {
       service.get("api/department/all").then(res => {
         let departmentsList = res.obj;
@@ -65,8 +78,8 @@ export default {
       })
     });
     const changeExcel = e => {
-      state.info="";
-      state.canSubmit=false;
+      state.info = "";
+      state.canSubmit = false;
       state.dialogVisible = true;
       const files = e.target.files
       if (files.length <= 0) {
@@ -144,21 +157,38 @@ export default {
         info2 = `“${unSavedMajors.toString()}”专业尚未建立，请先增设专业。`
       }
       state.info = info1 + info2;
-      if (state.info===""){
-        state.dialogVisible=false;
+      if (state.info === "") {
+        state.dialogVisible = false;
         ElMessage.success("数据校验通过，允许执行导入");
-        state.canSubmit=true;
+        state.canSubmit = true;
       }
     };
     const handleSubmit = () => {
-      service.post("/api/student/addOrUpdates",state.tableData).then(()=>{
-        state.tableData=[];
-        state.canSubmit=false;
-      });
+      state.canSubmit = false;
+      // 导入操作通常耗时很长，需要线程同步，并在页面展示提示信息,但是如果中间返回成功了，那么终止计时！
+      const rps = 30;
+      state.needSeconds = Math.round(state.tableData.length / rps);
+      let timeCount = setInterval(() => {
+        state.needSeconds--;
+      }, 1000);
+      let timeDone = setTimeout(()=>{
+        clearInterval(timeCount);
+        state.needSeconds=0;
+        state.tableData = [];
+        ElMessage.success("新增/更新学生信息成功");
+      },Math.round(state.tableData.length / rps)*1000)
+      service.post("/api/student/addOrUpdates", state.tableData)
+          .then(() => {
+            // 如果快速返回了，提前终止计时器、更新器
+            clearInterval(timeCount);
+            clearTimeout(timeDone);
+            state.needSeconds = 0;
+            state.tableData = [];
+          });
     }
     return {
-      ...toRefs(state),
-      changeExcel,handleSubmit
+      ...toRefs(state),needSecondsMessage,needSecondsVisible,
+      changeExcel, handleSubmit
     }
   },
 }
