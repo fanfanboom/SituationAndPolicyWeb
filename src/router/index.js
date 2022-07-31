@@ -38,6 +38,13 @@ const routes = [
                 title: "批量新增/更新学生信息"
             }
         },{
+            path: "/courses",
+            name: "courses",
+            component:()=>import("../views/Courses.vue"),
+            meta: {
+                title: "课程信息"
+            }
+        },{
             path: "/dashboard",
             name: "dashboard",
             meta: {

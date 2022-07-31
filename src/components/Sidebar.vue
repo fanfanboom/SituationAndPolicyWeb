@@ -58,6 +58,9 @@ export default {
           }, {
             index: "/students",
             title: "学生信息"
+          }, {
+            index: "/courses",
+            title: "课程信息"
           }
         ]
       },
