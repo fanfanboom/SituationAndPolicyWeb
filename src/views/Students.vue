@@ -54,7 +54,7 @@
 <script>
 import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
-import router from "../router";
+import {useRouter} from "vue-router";
 
 export default {
   name: "Students",
@@ -115,6 +115,7 @@ export default {
         state.majors=res.obj;
       })
     };
+    const router=useRouter();
     const toAddOrUpdates = () => {
       router.push("/studentsAddOrUpdates");
     };
