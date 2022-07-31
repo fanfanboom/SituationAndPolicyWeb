@@ -26,6 +26,7 @@
           <el-option v-for="(item,index) in majors" :label="item.name" :value="item.id" :key="index"/>
         </el-select>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+        <el-button type="warning" icon="el-icon-plus" @click="toAddOrUpdates">批量新增/更新学生信息</el-button>
       </div>
       <el-table :data="pagedData.content" border>
         <el-table-column label="序号" width="50" align="center">
@@ -53,6 +54,7 @@
 <script>
 import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
+import router from "../router";
 
 export default {
   name: "Students",
@@ -113,9 +115,12 @@ export default {
         state.majors=res.obj;
       })
     };
+    const toAddOrUpdates = () => {
+      router.push("/studentsAddOrUpdates");
+    };
     return {
       ...toRefs(state),
-      handlePageChange,handleSearch,handleDepartmentChange
+      handlePageChange,handleSearch,handleDepartmentChange,toAddOrUpdates
     }
   },
 }

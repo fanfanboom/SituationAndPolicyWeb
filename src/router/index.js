@@ -31,6 +31,13 @@ const routes = [
                 title: "学生信息"
             }
         },{
+            path: "/studentsAddOrUpdates",
+            name: "studentsAddOrUpdates",
+            component:()=>import("../views/StudentsAddOrUpdates.vue"),
+            meta: {
+                title: "批量新增/更新学生信息"
+            }
+        },{
             path: "/dashboard",
             name: "dashboard",
             meta: {
@@ -122,20 +129,6 @@ const routes = [
                 title: '个人中心'
             },
             component: () => import (/* webpackChunkName: "user" */ '../views/User.vue')
-        }, {
-            path: '/editor',
-            name: 'editor',
-            meta: {
-                title: '富文本编辑器'
-            },
-            component: () => import (/* webpackChunkName: "editor" */ '../views/Editor.vue')
-        }, {
-            path: '/markdown',
-            name: 'markdown',
-            meta: {
-                title: 'markdown编辑器'
-            },
-            component: () => import (/* webpackChunkName: "markdown" */ '../views/Markdown.vue')
         }
         ]
     }, {
