@@ -17,12 +17,12 @@
     "vue-i18n": "^9.0.0",
     "vue-router": "^4.0.10",
     "vue-schart": "^2.0.0",
-    "wangeditor": "^4.7.4"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "vite": "2.3.7",
     "@vitejs/plugin-vue": "^1.2.3",
-    "@vue/compiler-sfc": "^3.1.2"
+    "@vue/compiler-sfc": "^3.1.2",
+    "vite": "2.3.7"
   },
   "browserslist": [
     "> 1%",
