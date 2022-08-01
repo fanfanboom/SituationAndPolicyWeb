@@ -45,6 +45,13 @@ const routes = [
                 title: "课程信息"
             }
         },{
+            path: "/teachingClasses",
+            name: "teachingClasses",
+            component:()=>import("../views/TeachingClasses.vue"),
+            meta: {
+                title: "教学班"
+            }
+        },{
             path: "/dashboard",
             name: "dashboard",
             meta: {

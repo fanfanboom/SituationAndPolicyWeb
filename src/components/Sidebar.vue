@@ -63,6 +63,14 @@ export default {
             title: "课程信息"
           }
         ]
+      }, {
+        icon: "el-icon-lxcustomization",
+        index: "scoreSubmits",
+        title: "成绩提交",
+        subs: [{
+          index: "/teachingClasses",
+          title: "教学班",
+        }]
       },
       {
         icon: "el-icon-lx-cascades",
