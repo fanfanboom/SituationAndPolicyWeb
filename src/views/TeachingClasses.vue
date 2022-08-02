@@ -53,6 +53,13 @@
         <el-table-column label="教学班名" prop="name"></el-table-column>
         <el-table-column label="教学班类型" prop="classType"></el-table-column>
         <el-table-column label="教学班状态" prop="classState"></el-table-column>
+        <el-table-column label="主管教师">
+          <template #default="scope">
+            <span v-if="scope.row.teacher !== null">
+              {{scope.row.teacher.personName}}（{{ scope.row.teacher.id }}）
+            </span>
+          </template>
+        </el-table-column>
       </el-table>
       <div class="pagination">
         <el-pagination background layout="total, prev, pager, next" :current-page="pagedData.pageable.pageNumber+1"
