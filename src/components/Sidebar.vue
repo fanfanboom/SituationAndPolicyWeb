@@ -78,6 +78,9 @@ export default {
         subs: [{
           index: "/userManage",
           title: "用户管理"
+        },{
+          index: "/user",
+          title: "个人中心"
         }]
       },
       {
