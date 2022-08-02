@@ -71,6 +71,14 @@ export default {
           index: "/teachingClasses",
           title: "教学班",
         }]
+      }, {
+        icon: "el-icon-lxconditions",
+        index: "systemManage",
+        title: "系统管理",
+        subs: [{
+          index: "/userManage",
+          title: "用户管理"
+        }]
       },
       {
         icon: "el-icon-lx-cascades",

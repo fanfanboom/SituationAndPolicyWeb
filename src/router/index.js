@@ -52,6 +52,13 @@ const routes = [
                 title: "教学班"
             }
         },{
+            path: "/userManage",
+            name: "username",
+            component:()=>import("../views/UserManage.vue"),
+            meta: {
+                title: "用户管理"
+            }
+        },{
             path: "/dashboard",
             name: "dashboard",
             meta: {
