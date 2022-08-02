@@ -19,7 +19,7 @@
         <el-select v-model="queryObject.course.id" placeholder="课程" style="margin-right: 10px;margin-bottom: 5px">
           <el-option v-for="(item,index) in courses" :value="item.id" :key="index" style="margin-right: 10px">
             <template #default>
-              {{item.id}}-{{item.kcm}}
+              {{ item.id }}-{{ item.kcm }}
             </template>
           </el-option>
         </el-select>
@@ -45,18 +45,25 @@
         </el-table-column>
         <el-table-column label="学年" prop="xnm" width="90"></el-table-column>
         <el-table-column label="学期" prop="xqm" width="50"></el-table-column>
-        <el-table-column label="课程">
+        <el-table-column label="课程" width="190">
           <template #default="scope">
-            {{scope.row.course.id}}-{{scope.row.course.kcm}}
+            {{ scope.row.course.id }}-{{ scope.row.course.kcm }}
           </template>
         </el-table-column>
         <el-table-column label="教学班名" prop="name"></el-table-column>
-        <el-table-column label="教学班类型" prop="classType"></el-table-column>
+        <el-table-column label="教学班类型" prop="classType" width="100"></el-table-column>
         <el-table-column label="教学班状态" prop="classState"></el-table-column>
+        <el-table-column label="主管单位">
+          <template #default="scope">
+            <span v-if="scope.row.teacher !== null">
+              {{ scope.row.teacher.department.name }}
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column label="主管教师">
           <template #default="scope">
             <span v-if="scope.row.teacher !== null">
-              {{scope.row.teacher.personName}}（{{ scope.row.teacher.id }}）
+              {{ scope.row.teacher.personName }}（{{ scope.row.teacher.id }}）
             </span>
           </template>
         </el-table-column>
@@ -78,16 +85,16 @@ export default {
   name: "TeachingClasses",
   setup() {
     const state = reactive({
-      xnms:[],
-      courses:[],
-      queryObject:{
-        xnm:"",
-        xqm:"",
-        course:{
-          id:""
+      xnms: [],
+      courses: [],
+      queryObject: {
+        xnm: "",
+        xqm: "",
+        course: {
+          id: ""
         },
-        classType:"",
-        classState:"",
+        classType: "",
+        classState: "",
       },
       pagedData: {
         content: [],
@@ -101,17 +108,17 @@ export default {
     });
     const getData = () => {
       service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
-      /ASC/name`,state.queryObject).then(res=>{
+      /ASC/name`, state.queryObject).then(res => {
         state.pagedData = res.obj;
       })
     };
-    onMounted(()=>{
+    onMounted(() => {
       getData();
-      service.get("/api/teachingClass/allXnms").then(res=>{
-        state.xnms=res.obj;
+      service.get("/api/teachingClass/allXnms").then(res => {
+        state.xnms = res.obj;
       });
-      service.get("/api/course/all").then(res=>{
-        state.courses=res.obj;
+      service.get("/api/course/all").then(res => {
+        state.courses = res.obj;
       })
     });
     const handlePageChange = (pageIndex) => {
@@ -120,12 +127,12 @@ export default {
     };
     const handleSearch = () => {
       //设置回到第一页，以免页数错误导致查询失败
-      state.pagedData.pageable.pageNumber=1;
+      state.pagedData.pageable.pageNumber = 1;
       getData();
     };
     return {
       ...toRefs(state),
-      handlePageChange,handleSearch
+      handlePageChange, handleSearch
     }
   },
 }
