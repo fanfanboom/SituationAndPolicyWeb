@@ -45,13 +45,21 @@
         </el-table-column>
         <el-table-column label="学年" prop="xnm" width="90"></el-table-column>
         <el-table-column label="学期" prop="xqm" width="50"></el-table-column>
-        <el-table-column label="课程" width="190">
+        <el-table-column label="课程" width="100">
           <template #default="scope">
-            {{ scope.row.course.id }}-{{ scope.row.course.kcm }}
+            {{ scope.row.course.id }}<br>{{ scope.row.course.kcm }}
           </template>
         </el-table-column>
         <el-table-column label="教学班名" prop="name"></el-table-column>
-        <el-table-column label="教学班类型" prop="classType" width="100"></el-table-column>
+        <el-table-column label="成绩组成">
+          <template #default="scope">
+            <span
+                v-if="scope.row.classType === '正考'">平时：{{ scope.row.usualPercentage }};期末：{{
+                scope.row.examPercentage
+              }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="教学班类型" prop="classType" width="100" align="center"></el-table-column>
         <el-table-column label="教学班状态" prop="classState"></el-table-column>
         <el-table-column label="主管单位">
           <template #default="scope">
@@ -67,6 +75,13 @@
             </span>
           </template>
         </el-table-column>
+        <el-table-column label="快捷操作">
+          <template #default="scope">
+            <el-button type="success" icon="iconfont el-icon-lxlisting-content" size="small"
+                       @click="handleViewStudentsInTeachingClass(scope.row)">查看名单
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <div class="pagination">
         <el-pagination background layout="total, prev, pager, next" :current-page="pagedData.pageable.pageNumber+1"
@@ -74,6 +89,14 @@
                        @current-change="handlePageChange"></el-pagination>
       </div>
     </div>
+    <el-dialog :title="`教学班：${viewedTeachingClass.name}的学生名单`" v-model="dialogVisible">
+      <el-table :data="students" border>
+        <el-table-column type="index" label="序号" width="50" align="center"></el-table-column>
+        <el-table-column prop="id" label="学号"></el-table-column>
+        <el-table-column prop="personName" label="姓名"></el-table-column>
+        <el-table-column prop="myClass" label="班级"></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -105,6 +128,11 @@ export default {
           pageSize: 10,
         }
       },
+      dialogVisible: false,
+      viewedTeachingClass: {
+        name: ""
+      },
+      students: []
     });
     const getData = () => {
       service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
@@ -130,9 +158,17 @@ export default {
       state.pagedData.pageable.pageNumber = 1;
       getData();
     };
+    const handleViewStudentsInTeachingClass = (teachingClass) => {
+      state.viewedTeachingClass = teachingClass;
+      state.dialogVisible = true;
+      state.scores = [];
+      service.get(`/api/score/findStudentsInTeachingClass/${state.viewedTeachingClass.id}`).then(res => {
+        state.students = res.obj;
+      })
+    }
     return {
       ...toRefs(state),
-      handlePageChange, handleSearch
+      handlePageChange, handleSearch, handleViewStudentsInTeachingClass
     }
   },
 }
