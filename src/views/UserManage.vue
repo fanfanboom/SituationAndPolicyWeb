@@ -19,7 +19,7 @@
             <el-table-column prop="department.name" label="归属学院"></el-table-column>
             <el-table-column label="快捷操作">
               <template #default="scope">
-                {{scope.row.id}}
+                <el-button type="warning" icon="iconfont el-icon-lxnamecard" size="small" @click="initPass(scope.row)">重置密码</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -39,7 +39,7 @@
             <el-table-column prop="myClass" label="班级"></el-table-column>
             <el-table-column label="快捷操作">
               <template #default="scope">
-                {{scope.row.id}}
+                <el-button type="warning" icon="iconfont el-icon-lxnamecard" size="small" @click="initPass(scope.row)">重置密码</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -52,6 +52,7 @@
 <script>
 import {computed, reactive, toRefs} from "vue";
 import service from "../utils/request";
+import {ElMessageBox} from "element-plus";
 
 export default {
   name: "UserManage",
@@ -79,10 +80,15 @@ export default {
         state.students=res.obj;
       })
     };
+    const initPass = (user) => {
+      service.post(`/api/user/initpass/${user.id}`).then(()=>{
+        ElMessageBox.alert(`\"${user.id}-${user.personName}\"密码已重置为\"sdau${user.id}\"`,"提示");
+      })
+    }
     return {
       ...toRefs(state),
       teacherSearchAble,studentSearchAble,
-      handleTeacherSearch,handleStudentSearch
+      handleTeacherSearch,handleStudentSearch,initPass
     }
   },
 }
