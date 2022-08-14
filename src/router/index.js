@@ -17,48 +17,55 @@ const routes = [
                 title: "学院信息"
             }
         }, {
-            path:"/majors",
+            path: "/majors",
             name: "majors",
-            component:()=>import("../views/Majors.vue"),
+            component: () => import("../views/Majors.vue"),
             meta: {
                 title: "专业信息"
             }
         }, {
-            path:"/students",
+            path: "/students",
             name: 'students',
-            component:()=>import("../views/Students.vue"),
+            component: () => import("../views/Students.vue"),
             meta: {
                 title: "学生信息"
             }
-        },{
+        }, {
             path: "/studentsAddOrUpdates",
             name: "studentsAddOrUpdates",
-            component:()=>import("../views/StudentsAddOrUpdates.vue"),
+            component: () => import("../views/StudentsAddOrUpdates.vue"),
             meta: {
                 title: "批量新增/更新学生信息"
             }
-        },{
+        }, {
             path: "/courses",
             name: "courses",
-            component:()=>import("../views/Courses.vue"),
+            component: () => import("../views/Courses.vue"),
             meta: {
                 title: "课程信息"
             }
-        },{
+        }, {
             path: "/teachingClasses",
             name: "teachingClasses",
-            component:()=>import("../views/TeachingClasses.vue"),
+            component: () => import("../views/TeachingClasses.vue"),
             meta: {
                 title: "教学班"
             }
-        },{
+        }, {
+            path: "/selectedCourseImport",
+            name: "selectedCourseImport",
+            component: () => import("../views/SelectedCoursesImport.vue"),
+            meta: {
+                title:"批量导入教学班&选课"
+            }
+        }, {
             path: "/userManage",
             name: "username",
-            component:()=>import("../views/UserManage.vue"),
+            component: () => import("../views/UserManage.vue"),
             meta: {
                 title: "用户管理"
             }
-        },{
+        }, {
             path: "/dashboard",
             name: "dashboard",
             meta: {

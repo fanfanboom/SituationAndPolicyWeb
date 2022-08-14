@@ -35,7 +35,7 @@
           <el-option value="提交" label="提交"></el-option>
         </el-select>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-        <el-button type="warning" icon="el-icon-plus">批量导入教学班&选课</el-button>
+        <el-button type="warning" icon="el-icon-plus" @click="handleImport">批量导入教学班&选课</el-button>
       </div>
       <el-table :data="pagedData.content" border>
         <el-table-column label="序号" width="50" align="center">
@@ -43,9 +43,9 @@
             {{ pagedData.pageable.pageNumber * pagedData.pageable.pageSize + scope.$index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column label="学年" prop="xnm" width="90"></el-table-column>
-        <el-table-column label="学期" prop="xqm" width="50"></el-table-column>
-        <el-table-column label="课程" width="100">
+        <el-table-column label="学年" prop="xnm" width="90" align="center"></el-table-column>
+        <el-table-column label="学期" prop="xqm" width="50" align="center"></el-table-column>
+        <el-table-column label="课程" width="100" align="center">
           <template #default="scope">
             {{ scope.row.course.id }}<br>{{ scope.row.course.kcm }}
           </template>
@@ -103,6 +103,7 @@
 <script>
 import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
+import {useRouter} from "vue-router";
 
 export default {
   name: "TeachingClasses",
@@ -158,6 +159,10 @@ export default {
       state.pagedData.pageable.pageNumber = 1;
       getData();
     };
+    const router = useRouter();
+    const handleImport = () => {
+      router.push("/selectedCourseImport");
+    };
     const handleViewStudentsInTeachingClass = (teachingClass) => {
       state.viewedTeachingClass = teachingClass;
       state.dialogVisible = true;
@@ -168,7 +173,7 @@ export default {
     }
     return {
       ...toRefs(state),
-      handlePageChange, handleSearch, handleViewStudentsInTeachingClass
+      handlePageChange, handleSearch, handleViewStudentsInTeachingClass, handleImport
     }
   },
 }
