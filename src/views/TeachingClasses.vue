@@ -34,7 +34,9 @@
           <el-option value="部分提交" label="部分提交"></el-option>
           <el-option value="提交" label="提交"></el-option>
         </el-select>
+        <br>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="handleNoTeacherSearch">无主管教师班级</el-button>
         <el-button type="warning" icon="el-icon-plus" @click="handleImport">批量导入教学班&选课</el-button>
       </div>
       <el-table :data="pagedData.content" border>
@@ -77,8 +79,8 @@
         </el-table-column>
         <el-table-column label="快捷操作">
           <template #default="scope">
-            <el-button type="success" icon="iconfont el-icon-lxlisting-content" size="small"
-                       @click="handleViewStudentsInTeachingClass(scope.row)">查看名单
+            <el-button type="success" size="small"
+                       @click="handleViewStudentsInTeachingClass(scope.row)">学生名单
             </el-button>
           </template>
         </el-table-column>
@@ -133,13 +135,21 @@ export default {
       viewedTeachingClass: {
         name: ""
       },
-      students: []
+      students: [],
+      searchType: "normal"//noteacher代表查询的是无教师的班级
     });
     const getData = () => {
-      service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
+      if ("normal" === state.searchType) {
+        service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
       /ASC/name`, state.queryObject).then(res => {
-        state.pagedData = res.obj;
-      })
+          state.pagedData = res.obj;
+        })
+      } else {
+        service.get(`/api/teachingClass/findNoTeacherClasses/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
+        /ASC/name`).then(res => {
+          state.pagedData = res.obj;
+        })
+      }
     };
     onMounted(() => {
       getData();
@@ -156,6 +166,13 @@ export default {
     };
     const handleSearch = () => {
       //设置回到第一页，以免页数错误导致查询失败
+      state.searchType = "normal";
+      state.pagedData.pageable.pageNumber = 1;
+      getData();
+    };
+    const handleNoTeacherSearch = () => {
+      //设置回到第一页，以免页数错误导致查询失败
+      state.searchType = "noteacher";
       state.pagedData.pageable.pageNumber = 1;
       getData();
     };
@@ -173,7 +190,7 @@ export default {
     }
     return {
       ...toRefs(state),
-      handlePageChange, handleSearch, handleViewStudentsInTeachingClass, handleImport
+      handlePageChange, handleSearch, handleViewStudentsInTeachingClass, handleImport, handleNoTeacherSearch
     }
   },
 }
