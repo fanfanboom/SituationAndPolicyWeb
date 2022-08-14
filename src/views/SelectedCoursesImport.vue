@@ -11,7 +11,7 @@
       <div style="margin-bottom: 10px">
         <input type="file" accept=".xls,.xlsx" class="upload-file" @change="changeExcel($event)">
         <el-button type="warning" icon="el-icon-top"
-                   style="margin-right: 10px" :disabled="!canSubmit">提交导入
+                   style="margin-right: 10px" :disabled="!canSubmit" @click="handleSubmit">提交导入
         </el-button>
         <el-tag type="danger" size="large" style="margin-right: 5px">Tips:导入教学班前，请确保已完成“基础信息”-“学生信息”的批量更新。</el-tag>
         <el-tag type="primary" size="large">Tips:已经导入过的教学班，请勿重复导入。</el-tag>
@@ -30,11 +30,16 @@
       <el-result icon="info" title="数据解析中，请您耐心等待..." v-if="info===''"></el-result>
       <el-result icon="error" title="数据校验失败,无法执行导入" :sub-title="info" v-if="info!==''"></el-result>
     </el-dialog>
+
+    <el-dialog v-model="needSecondsVisible" width="40%">
+      <el-result icon="success" :title="needSecondsMessage"></el-result>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
-import {onMounted, reactive, toRefs} from "vue";
+import {onMounted, reactive, toRefs,computed} from "vue";
 import {ElMessage} from "element-plus";
 import * as XLSX from "xlsx";
 import service from "../utils/request";
@@ -48,8 +53,15 @@ export default {
       existedTeachingClassNames: [],
       tableData: [],
       info: "",
-      dialogVisible: false
+      dialogVisible: false,
+      needSeconds:0
     });
+    const needSecondsMessage = computed(() => {
+      return `提交中，预计还需要${state.needSeconds}秒...`
+    });
+    const needSecondsVisible = computed(() => {
+      return state.needSeconds > 0;
+    })
     onMounted(() => {
       //读取课程列表
       service.get("/api/course/all").then(res => {
@@ -80,7 +92,7 @@ export default {
         const wsName = workbook.SheetNames[0]
         const ws = XLSX.utils.sheet_to_json(workbook.Sheets[wsName])
         dealExcel(ws);// ...数据转换
-        console.log('ws:', ws) // 转换成json的数据
+        // console.log('ws:', ws) // 转换成json的数据
         state.tableData = ws;
         valueCheck();
       }
@@ -140,10 +152,33 @@ export default {
         ElMessage.success("数据校验通过，允许执行导入");
         state.canSubmit = true;
       }
-    }
+    };
+    const handleSubmit = () => {
+      state.canSubmit = false;
+      // 导入操作通常耗时很长，需要线程同步，并在页面展示提示信息,但是如果中间返回成功了，那么终止计时！
+      const rps = 30;
+      state.needSeconds = Math.round(state.tableData.length / rps);
+      let timeCount = setInterval(() => {
+        state.needSeconds--;
+      }, 1000);
+      let timeDone = setTimeout(()=>{
+        clearInterval(timeCount);
+        state.needSeconds=0;
+        state.tableData = [];
+        ElMessage.success("选课数据导入成功，教学班组建完成");
+      },Math.round(state.tableData.length / rps)*1000)
+      service.post("/api/teachingClass/initTeachingClasses", state.tableData)
+          .then(() => {
+            // 如果快速返回了，提前终止计时器、更新器
+            clearInterval(timeCount);
+            clearTimeout(timeDone);
+            state.needSeconds = 0;
+            state.tableData = [];
+          });
+    };
     return {
-      ...toRefs(state),
-      changeExcel
+      ...toRefs(state),needSecondsMessage,needSecondsVisible,
+      changeExcel,handleSubmit
     }
   },
 }

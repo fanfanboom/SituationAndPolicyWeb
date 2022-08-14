@@ -50,7 +50,7 @@
             {{ scope.row.course.id }}<br>{{ scope.row.course.kcm }}
           </template>
         </el-table-column>
-        <el-table-column label="教学班名" prop="name"></el-table-column>
+        <el-table-column label="教学班名" prop="name" width="240"></el-table-column>
         <el-table-column label="成绩组成">
           <template #default="scope">
             <span
