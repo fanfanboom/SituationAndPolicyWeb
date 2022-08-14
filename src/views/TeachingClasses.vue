@@ -37,10 +37,13 @@
         <br>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
         <el-button type="primary" icon="el-icon-search" @click="handleNoTeacherSearch">无主管教师班级</el-button>
+        <el-button type="primary" icon="el-icon-link" v-if="searchType==='noteacher'">批量分配主管教师</el-button>
         <el-button type="warning" icon="el-icon-plus" @click="handleImport">批量导入教学班&选课</el-button>
       </div>
+
       <el-table :data="pagedData.content" border>
-        <el-table-column label="序号" width="50" align="center">
+        <el-table-column align="center" type="selection" v-if="searchType==='noteacher'"></el-table-column>
+        <el-table-column label="序号" width="50" align="center" v-if="searchType==='normal'">
           <template #default="scope">
             {{ pagedData.pageable.pageNumber * pagedData.pageable.pageSize + scope.$index + 1 }}
           </template>
@@ -56,9 +59,8 @@
         <el-table-column label="成绩组成">
           <template #default="scope">
             <span
-                v-if="scope.row.classType === '正考'">平时：{{ scope.row.usualPercentage }};期末：{{
-                scope.row.examPercentage
-              }}</span>
+                v-if="scope.row.classType === '正考'">平时：{{ scope.row.usualPercentage }};
+              期末：{{scope.row.examPercentage}}</span>
           </template>
         </el-table-column>
         <el-table-column label="教学班类型" prop="classType" width="100" align="center"></el-table-column>
@@ -113,6 +115,7 @@ export default {
     const state = reactive({
       xnms: [],
       courses: [],
+      teachers:[],
       queryObject: {
         xnm: "",
         xqm: "",
@@ -148,7 +151,13 @@ export default {
         service.get(`/api/teachingClass/findNoTeacherClasses/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
         /ASC/name`).then(res => {
           state.pagedData = res.obj;
-        })
+        });
+        if (state.teachers.length===0){
+          // 尚未加载教师，需要加载
+          service.get("/api/teacher/findAllTeachers").then(res=>{
+            state.teachers=res.obj;
+          })
+        }
       }
     };
     onMounted(() => {
