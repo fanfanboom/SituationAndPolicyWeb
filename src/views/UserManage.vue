@@ -7,7 +7,7 @@
     </div>
     <div class="container">
       <el-tabs v-model="activeTab">
-        <el-tab-pane label="教师用户" name="teacher">
+        <el-tab-pane label="教师用户" name="teacher" v-if="isSchoolRole">
           <el-input v-model="teacherLike" placeholder="请输入教师号/教师姓名，支持模糊查询"
                     style="width: 300px;margin-right: 10px"></el-input>
           <el-button type="primary" icon="el-icon-search" @click="handleTeacherSearch" :disabled="!teacherSearchAble">
@@ -89,7 +89,7 @@
 </template>
 
 <script>
-import {computed, reactive, ref, toRefs} from "vue";
+import {computed, onMounted, reactive, ref, toRefs} from "vue";
 import service from "../utils/request";
 import {ElMessageBox} from "element-plus";
 
@@ -104,7 +104,15 @@ export default {
       students: [],
       dialogVisible: false,
       newTeacher: {id: "", personName: "", sex: "", department: {id: ""}},
-      departments: []
+      departments: [],
+      isSchoolRole:true
+    });
+    onMounted(()=>{
+      let user=JSON.parse(sessionStorage.getItem("loginUser"));
+      if ("teacher" === user.authorities[0].authority){
+        state.activeTab="student";
+        state.isSchoolRole=false;
+      }
     });
     const rules = {
       id: [{
