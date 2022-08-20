@@ -36,12 +36,14 @@
         </el-select>
         <br>
         <el-button type="primary" icon="el-icon-search" @click="handleSearch">搜索</el-button>
-        <el-button type="primary" icon="el-icon-search" @click="handleNoTeacherSearch">无主管教师班级</el-button>
-        <el-button type="primary" icon="el-icon-link" v-if="searchType==='noteacher'">批量分配主管教师</el-button>
+        <el-button type="primary" icon="el-icon-search" @click="handleNoTeacherSearch">查询无主管教师教学班</el-button>
+        <el-button type="primary" icon="el-icon-link" v-if="searchType==='noteacher'"
+                   @click="handleOpenAllocateTeacher">批量指派主管教师
+        </el-button>
         <el-button type="warning" icon="el-icon-plus" @click="handleImport">批量导入教学班&选课</el-button>
       </div>
 
-      <el-table :data="pagedData.content" border>
+      <el-table :data="pagedData.content" border @selection-change="handleSelectionChange">
         <el-table-column align="center" type="selection" v-if="searchType==='noteacher'"></el-table-column>
         <el-table-column label="序号" width="50" align="center" v-if="searchType==='normal'">
           <template #default="scope">
@@ -60,7 +62,7 @@
           <template #default="scope">
             <span
                 v-if="scope.row.classType === '正考'">平时：{{ scope.row.usualPercentage }};
-              期末：{{scope.row.examPercentage}}</span>
+              期末：{{ scope.row.examPercentage }}</span>
           </template>
         </el-table-column>
         <el-table-column label="教学班类型" prop="classType" width="100" align="center"></el-table-column>
@@ -93,6 +95,7 @@
                        @current-change="handlePageChange"></el-pagination>
       </div>
     </div>
+
     <el-dialog :title="`教学班：${viewedTeachingClass.name}的学生名单`" v-model="dialogVisible">
       <el-table :data="students" border>
         <el-table-column type="index" label="序号" width="50" align="center"></el-table-column>
@@ -101,6 +104,23 @@
         <el-table-column prop="myClass" label="班级"></el-table-column>
       </el-table>
     </el-dialog>
+    <el-dialog title="指派主管教师" v-model="allocateTeacherDialogVisible">
+      教学班：
+      <el-tag type="primary" v-for="(item,index) in selectedClasses" :key="index"
+              style="margin-right: 5px;margin-bottom: 5px">{{ item.name }}
+      </el-tag>
+      <el-divider></el-divider>
+      指派给：
+      <el-select v-model="allocateToTeacherId" placeholder="请选择教师">
+        <el-option v-for="(item,index) in teachers" :value="item.id"
+                   :label="item.personName+'('+item.department.name+')'" :key="index"></el-option>
+      </el-select>
+      <template #footer>
+        <span>
+            <el-button type="primary" @click="handleAllocate">确定指派</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -108,6 +128,7 @@
 import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
 import {useRouter} from "vue-router";
+import {ElMessage} from "element-plus";
 
 export default {
   name: "TeachingClasses",
@@ -115,7 +136,8 @@ export default {
     const state = reactive({
       xnms: [],
       courses: [],
-      teachers:[],
+      teachers: [],
+      allocateToTeacherId: "",
       queryObject: {
         xnm: "",
         xqm: "",
@@ -135,11 +157,13 @@ export default {
         }
       },
       dialogVisible: false,
+      allocateTeacherDialogVisible: false,
       viewedTeachingClass: {
         name: ""
       },
       students: [],
-      searchType: "normal"//noteacher代表查询的是无教师的班级
+      searchType: "normal",//noteacher代表查询的是无教师的班级
+      selectedClasses: []
     });
     const getData = () => {
       if ("normal" === state.searchType) {
@@ -152,10 +176,10 @@ export default {
         /ASC/name`).then(res => {
           state.pagedData = res.obj;
         });
-        if (state.teachers.length===0){
+        if (state.teachers.length === 0) {
           // 尚未加载教师，需要加载
-          service.get("/api/teacher/findAllTeachers").then(res=>{
-            state.teachers=res.obj;
+          service.get("/api/teacher/findAllTeachers").then(res => {
+            state.teachers = res.obj;
           })
         }
       }
@@ -185,6 +209,16 @@ export default {
       state.pagedData.pageable.pageNumber = 1;
       getData();
     };
+    const handleSelectionChange = (val) => {
+      state.selectedClasses = val;
+    }
+    const handleOpenAllocateTeacher = () => {
+      if (state.selectedClasses.length === 0) {
+        ElMessage.error("未选择教学班");
+      } else {
+        state.allocateTeacherDialogVisible = true;
+      }
+    }
     const router = useRouter();
     const handleImport = () => {
       router.push("/selectedCourseImport");
@@ -197,9 +231,30 @@ export default {
         state.students = res.obj;
       })
     }
+    const handleAllocate = () => {
+      if (state.allocateToTeacherId === "") {
+        ElMessage.error("尚未选择指派教师");
+      } else {
+        let selectedClassIds = state.selectedClasses.map(item => {
+          return item.id;
+        });
+        service.post(`/api/teachingClass/allocate/${state.allocateToTeacherId}`, {stringList: selectedClassIds}).then(() => {
+          state.allocateTeacherDialogVisible = false;
+          handleNoTeacherSearch();
+          state.allocateToTeacherId = "";
+        })
+      }
+    }
     return {
       ...toRefs(state),
-      handlePageChange, handleSearch, handleViewStudentsInTeachingClass, handleImport, handleNoTeacherSearch
+      handlePageChange,
+      handleSearch,
+      handleViewStudentsInTeachingClass,
+      handleImport,
+      handleNoTeacherSearch,
+      handleSelectionChange,
+      handleOpenAllocateTeacher,
+      handleAllocate
     }
   },
 }
