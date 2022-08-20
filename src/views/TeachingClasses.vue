@@ -41,6 +41,7 @@
                    @click="handleOpenAllocateTeacher">批量指派主管教师
         </el-button>
         <el-button type="warning" icon="el-icon-plus" @click="handleImport">批量导入教学班&选课</el-button>
+        <el-button type="primary" icon="el-icon-unlock" @click="openCommitDialogVisible=true">开放学年学期成绩提交</el-button>
       </div>
 
       <el-table :data="pagedData.content" border @selection-change="handleSelectionChange">
@@ -121,6 +122,26 @@
         </span>
       </template>
     </el-dialog>
+    <el-dialog title="开启学年学期成绩提交" v-model="openCommitDialogVisible">
+      <el-form v-model="openCommit">
+        <el-form-item label="学年">
+          <el-select v-model="openCommit.xnm" placeholder="请选择学年">
+            <el-option v-for="(item,index) in xnms" :label="item" :value="item" :key="index"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="学期">
+          <el-select v-model="openCommit.xqm" placeholder="请选择学期">
+            <el-option label="1" value="1"></el-option>
+            <el-option label="2" value="2"></el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span>
+            <el-button type="primary" @click="handleOpenCommit">开放提交</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -163,7 +184,12 @@ export default {
       },
       students: [],
       searchType: "normal",//noteacher代表查询的是无教师的班级
-      selectedClasses: []
+      selectedClasses: [],
+      openCommitDialogVisible: false,
+      openCommit: {
+        xnm: "",
+        xqm: ""
+      }
     });
     const getData = () => {
       if ("normal" === state.searchType) {
@@ -244,6 +270,21 @@ export default {
           state.allocateToTeacherId = "";
         })
       }
+    };
+    const handleOpenCommit = () => {
+      if (state.openCommit.xnm === "") {
+        ElMessage.error("请选择学年");
+      } else {
+        if (state.openCommit.xqm === "") {
+          ElMessage.error("请选择学期");
+        } else {
+          service.post(`/api/teachingClass/updateTeachingClassesToOpen/${state.openCommit.xnm}/${state.openCommit.xqm}`).then(() => {
+            state.openCommitDialogVisible = false;
+            state.pagedData.pageable.pageNumber = 1;
+            getData();
+          })
+        }
+      }
     }
     return {
       ...toRefs(state),
@@ -254,7 +295,8 @@ export default {
       handleNoTeacherSearch,
       handleSelectionChange,
       handleOpenAllocateTeacher,
-      handleAllocate
+      handleAllocate,
+      handleOpenCommit
     }
   },
 }
