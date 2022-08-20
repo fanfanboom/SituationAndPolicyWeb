@@ -42,7 +42,7 @@ export default {
     const items = ref([]);
     const items_school = [
       {
-        icon: "el-icon-lx-home",
+        icon: "el-icon-lxsignboard-fill",
         index: "/dashboard",
         title: "系统首页",
       }, {
@@ -87,7 +87,7 @@ export default {
     ];
     const items_teacher = [
       {
-        icon: "el-icon-lx-home",
+        icon: "el-icon-lxsignboard-fill",
         index: "/dashboard",
         title: "系统首页",
       }, {
