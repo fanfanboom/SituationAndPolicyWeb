@@ -115,6 +115,9 @@
     <el-dialog :title="`教学班${viewedTeachingClass.name}成绩提交`" v-model="scoreCommitDialogVisible" width="90%">
       <div style="margin-bottom: 10px;text-align: right">
         <el-button type="primary" size="small" icon="el-icon-document" @click="handleScoresOutput">导出成绩提交模板</el-button>
+        <el-button type="primary" size="small" icon="el-icon-document" @click="importScoresDialogVisible=true">
+          导入成绩（更新）
+        </el-button>
       </div>
       <el-table :data="scores" border>
         <el-table-column type="index" label="序号" width="50" align="center"></el-table-column>
@@ -148,6 +151,10 @@
       </el-table>
     </el-dialog>
 
+    <el-dialog title="导入成绩（更新）" v-model="importScoresDialogVisible">
+      <input type="file" accept=".xls,.xlsx" class="upload-file" @change="changeExcel($event)">
+    </el-dialog>
+
   </div>
 </template>
 
@@ -156,6 +163,7 @@ import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
 import {ElMessage, ElMessageBox} from "element-plus";
 import ExcelExport from "../utils/ExcelExport";
+import * as XLSX from "xlsx";
 
 export default {
   name: "TeachingClasses",
@@ -190,7 +198,8 @@ export default {
       usualPercentage: 30,
       examPercentage: 70,
       scoreCommitDialogVisible: false,
-      scores: []
+      scores: [],
+      importScoresDialogVisible: false
     });
     const getData = () => {
       service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
@@ -249,16 +258,63 @@ export default {
     };
     const handleScoresOutput = () => {
       ElMessageBox.alert("1.下载表格后，请按'Ctrl+A'全选，然后点击‘格式-自动调整列宽’进行宽度调整，以便更好录入。" +
-          "<br>2.违纪/作弊/旷考/申请缓考等成绩备注请导入系统以后，在页面中进行标注。", "提示",{
-        confirmButtonText:"我已知悉，开始导出",
-        dangerouslyUseHTMLString:true
-      }).then(()=>{
+          "<br>2.违纪/作弊/旷考/申请缓考等成绩备注请导入系统以后，在页面中进行标注。", "提示", {
+        confirmButtonText: "我已知悉，开始导出",
+        dangerouslyUseHTMLString: true
+      }).then(() => {
         let outputScores = state.scores.map(item => {
-          return {学号: item.student.id,姓名:item.student.personName,班级:item.student.myClass,平时成绩:item.usualScore,期末成绩:item.examScore}
+          return {
+            学号: item.student.id,
+            姓名: item.student.personName,
+            班级: item.student.myClass,
+            平时成绩: item.usualScore,
+            期末成绩: item.examScore
+          }
         });
-        ExcelExport(outputScores,state.viewedTeachingClass.name);
+        ExcelExport(outputScores, state.viewedTeachingClass.name);
       })
-    }
+    };
+    const changeExcel = e => {
+      const files = e.target.files
+      if (files.length <= 0) {
+        return false
+      } else if (!/\.(xls|xlsx)$/.test(files[0].name.toLowerCase())) {
+        ElMessage.error("上传格式不正确，请上传xls或者xlsx格式文件");
+        return false
+      }
+      // 读取表格
+      const fileReader = new FileReader()
+      fileReader.onload = ev => {
+        const workbook = XLSX.read(ev.target.result, {
+          type: "binary"
+        })
+        const wsName = workbook.SheetNames[0]
+        const ws = XLSX.utils.sheet_to_json(workbook.Sheets[wsName])
+        dealExcel(ws);// ...数据转换及处理
+      }
+      fileReader.readAsBinaryString(files[0])
+      state.importScoresDialogVisible=false;
+    };
+    const dealExcel = ws => {
+      ws.forEach(inputScore => {
+        //平时成绩、期末成绩，有一项变动的，就触发视图更新
+        if (inputScore["平时成绩"] !== undefined || inputScore["期末成绩"] !== undefined) {
+          state.scores.forEach(intableScore=>{
+            //逐个寻找并匹配
+            if (intableScore.student.id === inputScore["学号"]){
+              //若有新的平时成绩，更新
+              if (inputScore["平时成绩"] !== undefined){
+                intableScore.usualScore=inputScore["平时成绩"];
+              }
+              //若有新的期末成绩，更新
+              if (inputScore["期末成绩"] !== undefined){
+                intableScore.examScore=inputScore["期末成绩"];
+              }
+            }
+          })
+        }
+      });
+    };
     return {
       ...toRefs(state),
       handlePageChange,
@@ -267,7 +323,8 @@ export default {
       handleViewProportionSet,
       handleUpdateProportionSet,
       handleOpenScoreCommitDialog,
-      handleScoresOutput
+      handleScoresOutput,
+      changeExcel
     }
   },
 }
