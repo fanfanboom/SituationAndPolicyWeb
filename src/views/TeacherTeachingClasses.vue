@@ -113,6 +113,9 @@
     </el-dialog>
 
     <el-dialog :title="`教学班${viewedTeachingClass.name}成绩提交`" v-model="scoreCommitDialogVisible" width="90%">
+      <div style="margin-bottom: 10px;text-align: right">
+        <el-button type="primary" size="small" icon="el-icon-document">导出成绩提交模板</el-button>
+      </div>
       <el-table :data="scores" border>
         <el-table-column type="index" label="序号" width="50" align="center"></el-table-column>
         <el-table-column prop="student.id" label="学号"></el-table-column>
