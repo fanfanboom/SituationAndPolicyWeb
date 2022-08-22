@@ -51,7 +51,7 @@
           </template>
         </el-table-column>
         <el-table-column label="教学班名" prop="name" width="240"></el-table-column>
-        <el-table-column label="成绩组成">
+        <el-table-column label="成绩组成" width="270">
           <template #default="scope">
             <span v-if="scope.row.classType === '正考'">
               平时：{{ scope.row.usualPercentage }};期末：{{ scope.row.examPercentage }}
@@ -63,12 +63,13 @@
           </template>
         </el-table-column>
         <el-table-column label="教学班类型" prop="classType" width="100" align="center"></el-table-column>
-        <el-table-column label="教学班状态" prop="classState"></el-table-column>
+        <el-table-column label="教学班状态" prop="classState" width="100" align="center"></el-table-column>
         <el-table-column label="快捷操作">
           <template #default="scope">
             <el-button type="success" size="small" icon="el-icon-search"
-                       @click="handleViewStudentsInTeachingClass(scope.row)">查看学生名单
+                       @click="handleViewStudentsInTeachingClass(scope.row)">学生名单
             </el-button>
+            <el-button type="primary" size="small" icon="el-icon-edit">成绩提交</el-button>
           </template>
         </el-table-column>
       </el-table>
