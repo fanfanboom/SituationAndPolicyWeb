@@ -114,7 +114,7 @@
 
     <el-dialog :title="`教学班${viewedTeachingClass.name}成绩提交`" v-model="scoreCommitDialogVisible" width="90%">
       <div style="margin-bottom: 10px;text-align: right">
-        <el-button type="primary" size="small" icon="el-icon-document">导出成绩提交模板</el-button>
+        <el-button type="primary" size="small" icon="el-icon-document" @click="handleScoresOutput">导出成绩提交模板</el-button>
       </div>
       <el-table :data="scores" border>
         <el-table-column type="index" label="序号" width="50" align="center"></el-table-column>
@@ -154,7 +154,8 @@
 <script>
 import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
-import {ElMessage} from "element-plus";
+import {ElMessage, ElMessageBox} from "element-plus";
+import ExcelExport from "../utils/ExcelExport";
 
 export default {
   name: "TeachingClasses",
@@ -245,6 +246,18 @@ export default {
       service.get(`/api/score/findScoresInTeachingClass/${state.viewedTeachingClass.id}`).then(res => {
         state.scores = res.obj;
       })
+    };
+    const handleScoresOutput = () => {
+      ElMessageBox.alert("1.下载表格后，请按'Ctrl+A'全选，然后点击‘格式-自动调整列宽’进行宽度调整，以便更好录入。" +
+          "<br>2.违纪/作弊/旷考/申请缓考等成绩备注请导入系统以后，在页面中进行标注。", "提示",{
+        confirmButtonText:"我已知悉，开始导出",
+        dangerouslyUseHTMLString:true
+      }).then(()=>{
+        let outputScores = state.scores.map(item => {
+          return {学号: item.student.id,姓名:item.student.personName,班级:item.student.myClass,平时成绩:item.usualScore,期末成绩:item.examScore}
+        });
+        ExcelExport(outputScores,state.viewedTeachingClass.name);
+      })
     }
     return {
       ...toRefs(state),
@@ -253,7 +266,8 @@ export default {
       handleViewStudentsInTeachingClass,
       handleViewProportionSet,
       handleUpdateProportionSet,
-      handleOpenScoreCommitDialog
+      handleOpenScoreCommitDialog,
+      handleScoresOutput
     }
   },
 }
