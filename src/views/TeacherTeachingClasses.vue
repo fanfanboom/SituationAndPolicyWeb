@@ -53,31 +53,21 @@
         <el-table-column label="教学班名" prop="name" width="240"></el-table-column>
         <el-table-column label="成绩组成">
           <template #default="scope">
-            <span
-                v-if="scope.row.classType === '正考'">平时：{{ scope.row.usualPercentage }};
-              期末：{{ scope.row.examPercentage }}</span>
+            <span v-if="scope.row.classType === '正考'">
+              平时：{{ scope.row.usualPercentage }};期末：{{ scope.row.examPercentage }}
+            <span v-if="scope.row.classState==='录入' || scope.row.classState==='保存'">
+              <el-button icon="el-icon-connection" type="primary" size="small"
+                         @click="handleViewProportionSet(scope.row)">调整分项比例</el-button>
+            </span>
+            </span>
           </template>
         </el-table-column>
         <el-table-column label="教学班类型" prop="classType" width="100" align="center"></el-table-column>
         <el-table-column label="教学班状态" prop="classState"></el-table-column>
-        <el-table-column label="主管单位">
-          <template #default="scope">
-            <span v-if="scope.row.teacher !== null">
-              {{ scope.row.teacher.department.name }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="主管教师">
-          <template #default="scope">
-            <span v-if="scope.row.teacher !== null">
-              {{ scope.row.teacher.personName }}（{{ scope.row.teacher.id }}）
-            </span>
-          </template>
-        </el-table-column>
         <el-table-column label="快捷操作">
           <template #default="scope">
-            <el-button type="success" size="small"
-                       @click="handleViewStudentsInTeachingClass(scope.row)">学生名单
+            <el-button type="success" size="small" icon="el-icon-search"
+                       @click="handleViewStudentsInTeachingClass(scope.row)">查看学生名单
             </el-button>
           </template>
         </el-table-column>
@@ -98,12 +88,34 @@
       </el-table>
     </el-dialog>
 
+    <el-dialog :title="`教学班${viewedTeachingClass.name}的分项比例设置`" v-model="proportionSetVisible" width="35%">
+      <el-tag type="danger" size="large" style="margin-bottom: 10px">
+        Tips:正考教学班仅在录入/保存状态下允许调整成绩分项比例。部分提交/提交状态不允许调整。
+      </el-tag>
+      <el-form>
+        <el-form-item label="平时成绩">
+          <el-input v-model="usualPercentage" style="width: 110px">
+            <template #append> %</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="期末成绩">
+          <el-input v-model="examPercentage" style="width: 110px">
+            <template #append> %</template>
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" @click="handleUpdateProportionSet">确定</el-button>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import {onMounted, reactive, toRefs} from "vue";
 import service from "../utils/request";
+import {ElMessage} from "element-plus";
 
 export default {
   name: "TeachingClasses",
@@ -134,6 +146,9 @@ export default {
         name: ""
       },
       students: [],
+      proportionSetVisible: false,
+      usualPercentage: 30,
+      examPercentage: 70
     });
     const getData = () => {
       service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
@@ -156,7 +171,6 @@ export default {
     };
     const handleSearch = () => {
       //设置回到第一页，以免页数错误导致查询失败
-      state.searchType = "normal";
       state.pagedData.pageable.pageNumber = 1;
       getData();
     };
@@ -167,12 +181,26 @@ export default {
       service.get(`/api/score/findStudentsInTeachingClass/${state.viewedTeachingClass.id}`).then(res => {
         state.students = res.obj;
       })
+    };
+    const handleViewProportionSet = (teachingClass) => {
+      state.viewedTeachingClass = teachingClass;
+      state.proportionSetVisible = true;
+      state.usualPercentage = teachingClass.usualPercentage;
+      state.examPercentage = teachingClass.examPercentage;
+    };
+    const handleUpdateProportionSet = () => {
+      if (( parseInt(state.usualPercentage)+ parseInt(state.examPercentage)) !== 100) {
+        ElMessage.error("请正确设置成绩分项比例，两项之和应为100");
+      } else {
+        service.post(`/api/teachingClass/updateProportionSet/${state.viewedTeachingClass.id}/${state.usualPercentage}/${state.examPercentage}`).then(() => {
+          state.proportionSetVisible=false;
+          handleSearch();
+        })
+      }
     }
     return {
       ...toRefs(state),
-      handlePageChange,
-      handleSearch,
-      handleViewStudentsInTeachingClass
+      handlePageChange, handleSearch, handleViewStudentsInTeachingClass, handleViewProportionSet,handleUpdateProportionSet
     }
   },
 }
