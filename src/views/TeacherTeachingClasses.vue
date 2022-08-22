@@ -69,7 +69,9 @@
             <el-button type="success" size="small" icon="el-icon-search"
                        @click="handleViewStudentsInTeachingClass(scope.row)">学生名单
             </el-button>
-            <el-button type="primary" size="small" icon="el-icon-edit">成绩提交</el-button>
+            <el-button type="primary" size="small" icon="el-icon-edit"
+                       @click="handleOpenScoreCommitDialog(scope.row)">成绩提交
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -108,6 +110,39 @@
       <template #footer>
         <el-button type="primary" @click="handleUpdateProportionSet">确定</el-button>
       </template>
+    </el-dialog>
+
+    <el-dialog :title="`教学班${viewedTeachingClass.name}成绩提交`" v-model="scoreCommitDialogVisible" width="90%">
+      <el-table :data="scores" border>
+        <el-table-column type="index" label="序号" width="50" align="center"></el-table-column>
+        <el-table-column prop="student.id" label="学号"></el-table-column>
+        <el-table-column prop="student.personName" label="姓名"></el-table-column>
+        <el-table-column prop="student.myClass" label="班级"></el-table-column>
+        <el-table-column :label="`平时成绩（${viewedTeachingClass.usualPercentage}%）`"
+                         v-if="viewedTeachingClass.usualPercentage !== null">
+          <template #default="scope">
+            <el-input v-model="scope.row.usualScore"></el-input>
+          </template>
+        </el-table-column>
+        <el-table-column :label="`期末成绩（${viewedTeachingClass.examPercentage}%）`"
+                         v-if="viewedTeachingClass.examPercentage !== null">
+          <template #default="scope">
+            <el-input v-model="scope.row.examScore"></el-input>
+          </template>
+        </el-table-column>
+        <el-table-column prop="finalScore" label="最终成绩"></el-table-column>
+        <el-table-column label="成绩备注">
+          <template #default="scope">
+            <el-select v-model="scope.row.callout">
+              <el-option label="" value=""></el-option>
+              <el-option label="违纪" value="违纪"></el-option>
+              <el-option label="作弊" value="作弊"></el-option>
+              <el-option label="旷考" value="旷考"></el-option>
+              <el-option label="申请缓考" value="申请缓考"></el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-dialog>
 
   </div>
@@ -149,7 +184,9 @@ export default {
       students: [],
       proportionSetVisible: false,
       usualPercentage: 30,
-      examPercentage: 70
+      examPercentage: 70,
+      scoreCommitDialogVisible: false,
+      scores: []
     });
     const getData = () => {
       service.post(`/api/teachingClass/query/${state.pagedData.pageable.pageNumber}/${state.pagedData.pageable.pageSize}
@@ -190,18 +227,30 @@ export default {
       state.examPercentage = teachingClass.examPercentage;
     };
     const handleUpdateProportionSet = () => {
-      if (( parseInt(state.usualPercentage)+ parseInt(state.examPercentage)) !== 100) {
+      if ((parseInt(state.usualPercentage) + parseInt(state.examPercentage)) !== 100) {
         ElMessage.error("请正确设置成绩分项比例，两项之和应为100");
       } else {
         service.post(`/api/teachingClass/updateProportionSet/${state.viewedTeachingClass.id}/${state.usualPercentage}/${state.examPercentage}`).then(() => {
-          state.proportionSetVisible=false;
+          state.proportionSetVisible = false;
           handleSearch();
         })
       }
+    };
+    const handleOpenScoreCommitDialog = (teachingClass) => {
+      state.viewedTeachingClass = teachingClass;
+      state.scoreCommitDialogVisible = true;
+      service.get(`/api/score/findScoresInTeachingClass/${state.viewedTeachingClass.id}`).then(res => {
+        state.scores = res.obj;
+      })
     }
     return {
       ...toRefs(state),
-      handlePageChange, handleSearch, handleViewStudentsInTeachingClass, handleViewProportionSet,handleUpdateProportionSet
+      handlePageChange,
+      handleSearch,
+      handleViewStudentsInTeachingClass,
+      handleViewProportionSet,
+      handleUpdateProportionSet,
+      handleOpenScoreCommitDialog
     }
   },
 }
