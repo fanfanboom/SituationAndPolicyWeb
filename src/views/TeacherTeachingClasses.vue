@@ -114,7 +114,7 @@
 
     <el-dialog :title="`教学班${viewedTeachingClass.name}成绩提交`" v-model="scoreCommitDialogVisible" width="90%">
       <div style="margin-bottom: 10px;text-align: right">
-        <el-button type="primary" size="small" icon="el-icon-document" @click="handleScoresOutput">导出成绩提交模板</el-button>
+        <el-button type="success" size="small" icon="el-icon-document" @click="handleScoresOutput">导出成绩提交模板</el-button>
         <el-button type="primary" size="small" icon="el-icon-document" @click="importScoresDialogVisible=true">
           导入成绩（更新）
         </el-button>
@@ -136,7 +136,12 @@
             <el-input v-model="scope.row.examScore"></el-input>
           </template>
         </el-table-column>
-        <el-table-column prop="finalScore" label="最终成绩"></el-table-column>
+        <el-table-column label="最终成绩" align="center">
+          <template #default="scope">
+            <span v-if="scope.row.finalScore !== null">{{ scope.row.finalScore }}</span>
+            <span v-else>{{ calculate(scope.row) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="成绩备注">
           <template #default="scope">
             <el-select v-model="scope.row.callout">
@@ -293,28 +298,33 @@ export default {
         dealExcel(ws);// ...数据转换及处理
       }
       fileReader.readAsBinaryString(files[0])
-      state.importScoresDialogVisible=false;
+      state.importScoresDialogVisible = false;
     };
     const dealExcel = ws => {
       ws.forEach(inputScore => {
         //平时成绩、期末成绩，有一项变动的，就触发视图更新
         if (inputScore["平时成绩"] !== undefined || inputScore["期末成绩"] !== undefined) {
-          state.scores.forEach(intableScore=>{
+          state.scores.forEach(intableScore => {
             //逐个寻找并匹配
-            if (intableScore.student.id === inputScore["学号"]){
+            if (intableScore.student.id === inputScore["学号"]) {
               //若有新的平时成绩，更新
-              if (inputScore["平时成绩"] !== undefined){
-                intableScore.usualScore=inputScore["平时成绩"];
+              if (inputScore["平时成绩"] !== undefined) {
+                intableScore.usualScore = inputScore["平时成绩"];
               }
               //若有新的期末成绩，更新
-              if (inputScore["期末成绩"] !== undefined){
-                intableScore.examScore=inputScore["期末成绩"];
+              if (inputScore["期末成绩"] !== undefined) {
+                intableScore.examScore = inputScore["期末成绩"];
               }
             }
           })
         }
       });
     };
+    const calculate = (score) => {
+      if (score.usualScore !== null && score.examScore !== null) {
+        return Math.round(score.usualScore * state.viewedTeachingClass.usualPercentage / 100 + score.examScore * state.viewedTeachingClass.examPercentage / 100);
+      }
+    }
     return {
       ...toRefs(state),
       handlePageChange,
@@ -324,7 +334,8 @@ export default {
       handleUpdateProportionSet,
       handleOpenScoreCommitDialog,
       handleScoresOutput,
-      changeExcel
+      changeExcel,
+      calculate
     }
   },
 }
