@@ -91,6 +91,14 @@ export default {
         index: "/dashboard",
         title: "系统首页",
       }, {
+        icon: "el-icon-lxcustomization",
+        index: "scoreSubmits",
+        title: "成绩管理",
+        subs: [{
+          index: "/teacherTeachingClasses",
+          title: "我的教学班",
+        }]
+      },{
         icon: "el-icon-lxconditions",
         index: "systemManage",
         title: "系统管理",
